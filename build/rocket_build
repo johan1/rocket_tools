@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Root of build system... not project...
+PROJECT_ROOT="`pwd`"
+BUILD_ROOT="`cd $(dirname "$0"); pwd`"
+REPO_ROOT="${HOME}/.rocket_tools/repository"
+export PROJECT_ROOT
+export BUILD_ROOT
+export REPO_ROOT
+
+make -f ${BUILD_ROOT}/common/rocket_build.mk $@ \
+	2> >(while read line; do echo -e "\e[01;31m$line\e[0m" >&2; done)
+
