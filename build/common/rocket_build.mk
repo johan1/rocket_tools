@@ -42,6 +42,9 @@ endif
 endif
 	@sh "$(BUILD_ROOT)/common/deploy.sh" "$(DEPLOY_PATH)" "$(EXPORT_LIBNAME)"
 
+run:
+	make -j5 -f "${BUILD_ROOT}"/host/rocket.mk run
+
 clean:
 	@echo "Removing out folder" && \
 	rm -rf out
