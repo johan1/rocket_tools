@@ -1,0 +1,14 @@
+# Root of build system... not project...
+PROJECT_ROOT="`pwd`"
+BUILD_ROOT="`cd $(dirname "$0"); pwd`"
+REPO_ROOT="${HOME}/.rocket_tools/repository"
+
+echo "#Path variables" >Makefile
+echo "PROJECT_ROOT := $PROJECT_ROOT" >>Makefile
+echo "BUILD_ROOT := $BUILD_ROOT" >>Makefile
+echo "REPO_ROOT := $REPO_ROOT" >>Makefile
+echo "export PROJECT_ROOT" >>Makefile
+echo "export BUILD_ROOT" >>Makefile
+echo "export REPO_ROOT" >>Makefile
+echo >> Makefile
+cat ${BUILD_ROOT}/common/rocket_build.mk >>Makefile

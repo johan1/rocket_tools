@@ -20,6 +20,6 @@ ifeq ($(CSOURCES),)
 include $(BUILD_ROOT)/common/auto_sources.mk
 endif
 endif
-	
+
 include $(BUILD_ROOT)/host/config.mk
 include $(BUILD_ROOT)/host/common.mk

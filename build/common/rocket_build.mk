@@ -6,6 +6,9 @@ ifeq ($(SOURCE_DIR),)
 SOURCE_DIR=$(PROJECT_ROOT)/src
 endif
 
+INCLUDES :=
+-include $(PROJECT_ROOT)/dependencies.mk
+
 DEPLOY_PATH := $(REPO_ROOT)/$(EXPORT_LIBNAME)/$(EXPORT_LIBVERSION)
 
 all: host
@@ -14,16 +17,16 @@ all: host
 
 host:
 	@mkdir -p out/host && cd out/host && \
-	make -j5 -f "${BUILD_ROOT}"/host/rocket.mk
+	make -j5 -f "$(BUILD_ROOT)"/host/rocket.mk
 
 ifneq ($(TYPE),executable)
 android:
-	@sh "${BUILD_ROOT}"/android/create_lib_proj.sh
+	@sh "$(BUILD_ROOT)"/android/create_lib_proj.sh
 	@cd out/android && ndk-build -j5
 else
 # Prepare_android target is expected to generate proper android project.
 android: prepare_android
-	@sh "${BUILD_ROOT}"/android/create_lib_proj.sh
+	@sh "$(BUILD_ROOT)"/android/create_lib_proj.sh
 	@cd out/android && ndk-build -j5 && ant debug
 endif
 
@@ -43,7 +46,7 @@ endif
 	@sh "$(BUILD_ROOT)/common/deploy.sh" "$(DEPLOY_PATH)" "$(EXPORT_LIBNAME)"
 
 run:
-	make -j5 -f "${BUILD_ROOT}"/host/rocket.mk run
+	make -j5 -f "$(BUILD_ROOT)"/host/rocket.mk run
 
 clean:
 	@echo "Removing out folder" && \
@@ -62,3 +65,15 @@ ifneq ($(TYPE),executable)
 else
 .PHONY: all host prepare_android android deploy
 endif
+
+#clang_completion_dep:
+#	@echo -I/usr/include -I$(SOURCE_DIR) $(INCLUDES) | tr ' ' '\n' | uniq >.clang_complete
+
+prepare_vim:
+	@echo -I$(SOURCE_DIR) $(INCLUDES) | tr ' ' '\n' | sed 's/-I//g' | uniq >/tmp/rocket_build_includes && \
+	echo "Creating cscope database..." && \
+	$(BUILD_ROOT)/../dev_scripts/create_cscope_from_directory_list.sh /tmp/rocket_build_includes && \
+	echo "Creating .clang_complete" && \
+	$(BUILD_ROOT)/../dev_scripts/create_clang_complete.sh /tmp/rocket_build_includes
+
+
