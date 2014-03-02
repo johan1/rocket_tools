@@ -32,8 +32,13 @@ if [ -f "includes.list" ]; then
 	fi
 
 	for TMP_H_FILE in $(tail -n +3  includes.list); do
-		mkdir -p `dirname "$TMP_INC_DEST_PATH/$TMP_H_FILE"`
-		cp "$TMP_INC_SRC_PATH/$TMP_H_FILE" "$TMP_INC_DEST_PATH/$TMP_H_FILE"
+		mkdir -p `dirname "$TMP_INC_DEST_PATH/$TMP_H_FILE"`;
+
+		if [ ! -e "$TMP_INC_DEST_PATH/$TMP_H_FILE" ]; then
+			cp "$TMP_INC_SRC_PATH/$TMP_H_FILE" "$TMP_INC_DEST_PATH/$TMP_H_FILE"
+		elif [ "$TMP_INC_SRC_PATH/$TMP_H_FILE" -nt "$TMP_INC_DEST_PATH/$TMP_H_FILE" ]; then
+			cp "$TMP_INC_SRC_PATH/$TMP_H_FILE" "$TMP_INC_DEST_PATH/$TMP_H_FILE"
+		fi
 	done
 fi
 
