@@ -30,6 +30,16 @@ android: prepare_android
 	@cd out/android && ndk-build -j5 && ant debug
 endif
 
+# Creates tests.mk in out/tests and execute make on the tests.
+tests:
+	@mkdir -p out/tests && cd out/tests && \
+	$(BUILD_ROOT)/host/create_tests_mk $(shell $(BUILD_ROOT)/common/abs_path_to_rel_path.sh $(PROJECT_ROOT)/out/tests $(SOURCE_DIR))/ && \
+	make -j5 -f "$(BUILD_ROOT)"/host/tests_rocket.mk
+
+
+run_tests: tests
+	cd out/tests && echo "Running tests..."
+
 ifeq ($(HEADER_ONLY_LIB),)
 deploy: host android
 else
@@ -61,9 +71,9 @@ clean-all: clean
 	@rmdir "$(DEPLOY_PATH)"
 
 ifneq ($(TYPE),executable)
-.PHONY: all host android deploy
+.PHONY: all host android tests deploy
 else
-.PHONY: all host prepare_android android deploy
+.PHONY: all host prepare_android android tests deploy
 endif
 
 #clang_completion_dep:
@@ -75,5 +85,4 @@ prepare_vim:
 	$(BUILD_ROOT)/../dev_scripts/create_cscope_from_directory_list.sh /tmp/rocket_build_includes && \
 	echo "Creating .clang_complete" && \
 	$(BUILD_ROOT)/../dev_scripts/create_clang_complete.sh /tmp/rocket_build_includes
-
 

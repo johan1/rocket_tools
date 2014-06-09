@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Creates tests.mk file
+# The relative path to source directory given tests folder, most commonly ../src
+
+build_root=$(cd $(dirname "$0"); pwd)
+source_dir=$1
+
+echo "Creating tests.mk $source_dir"
+
+echo "BUILD_ARTIFACTS := $(ls ../../tests | tr '\n' ' ' | sed 's/.cpp//g')" >tests.mk
+echo >> tests.mk
+test_files="$(find ../../tests -name '*.cpp')"
+for test_file in $test_files; do
+	$build_root/test_dependencies $test_file "../../tests/" "$source_dir" >>tests.mk
+done

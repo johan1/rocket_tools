@@ -1,0 +1,86 @@
+#!/usr/bin/perl -w
+use strict;
+
+my @checked_cpps;
+my @objects;
+
+main();
+
+sub lookup_dependencies {
+	my $cpp_file = $_[0];
+	push (@checked_cpps, $cpp_file);
+
+	my $result = `g++ -std=c++11 -MM -MT -E $cpp_file`;
+
+	$result =~ s/\n//g;
+	$result =~ s/\\//g;
+	my @headers = split(' ', $result);
+	shift @headers;
+	shift @headers;
+
+	foreach my $filename (@headers) {
+		$filename =~ s/\.h/\.cpp/g;
+		$filename = simplify_relative_path($filename);
+
+		if (-e $filename) {
+			if (not grep( /^$filename$/, @checked_cpps)) {
+				lookup_dependencies($filename);
+			}
+		}
+	}
+}
+
+# Simplifies complex relative paths to simple relative paths. For example
+# src/world/../box2d/Box2dLoader.cpp -> src/box2d/Box2dLoader.cpp
+#
+sub simplify_relative_path() {
+	my $in_path = $_[0];
+	my @path_arr = split('/', $in_path);
+	my @path_out;
+
+	my $up_count = 0;
+	foreach my $token (@path_arr) {
+		if ($token eq "..") {
+			if (@path_out) {
+				pop @path_out;
+			} else {
+				$up_count++;
+			}
+		} elsif (not $token eq ".") {
+			push(@path_out, $token);
+		}
+	}
+
+	for (my $i=0; $i < $up_count; $i++) {
+		unshift (@path_out, "..");
+	}
+
+	return join('/', @path_out);
+}
+
+sub main {
+	my $main_cpp = shift(@ARGV);
+
+	my @dependencies = lookup_dependencies($main_cpp);
+
+	(my $bin = $main_cpp) =~ s/\.cpp//g;
+
+	foreach my $vpath (@ARGV) {
+		$bin =~ s/^\Q$vpath\E//g;
+	}
+
+	print "$bin: ";
+	foreach my $cpp_file (@checked_cpps) {
+		(my $obj = $cpp_file) =~ s/\.cpp/\.o/g;
+		foreach my $vpath (@ARGV) {
+			$obj =~ s/^\Q$vpath\E//g;
+		}
+		print  "$obj ";
+	}
+	print "\n";
+	print 'ifeq ($V,1)' . "\n";
+	print '	$(CXX) -o$@ $^ $(LDFLAGS)' . "\n";
+	print 'else' . "\n";
+	print '	@$(CXX) -o$@ $^ $(LDFLAGS)' . "\n";
+	print 'endif' . "\n";
+}
