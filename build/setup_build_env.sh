@@ -15,9 +15,12 @@ function install_android_sdk {
 	fi
 
 	local android_sdk_home=$(ls -p | grep "/" | grep "sdk")
-	if [ ! -d "${android_sdk_home}/platform-tools" ]; then
+	if [ ! -d "${android_sdk_home}/build-tools" ]; then
 		echo "Installing android sdk"
-		${android_sdk_home}/tools/android update sdk -u -t "platform-tool,platform,tool"
+		build_tools_id=$(${android_sdk_home}/tools/android list sdk --all | awk '{ if ($4 == "Build-tools,") {print $1; exit 1; }}' | sed 's/-//g')
+		sdk_api19_id=$(${android_sdk_home}/tools/android list sdk --all | grep "API 19" | awk '{print $1; exit 1;}' | sed 's/-//g')
+		sdk_api10_id=$(${android_sdk_home}/tools/android list sdk --all | grep "API 10" | awk '{print $1; exit 1;}' | sed 's/-//g')
+		${android_sdk_home}/tools/android update sdk -u -a -t "1,2,${build_tools_id},${sdk_api19_id},${sdk_api10_id}"
 		ln -fs ${android_sdk_home} ${ROCKET_CFG_HOME}/android-sdk
 	fi
 }
@@ -38,11 +41,13 @@ function install_android_ndk {
 
 function update_bash_profile {
 	local inserted=$(cat ~/.bash_profile | grep "Android ndk and sdk paths")
+
 	if [ -z "$inserted" ]; then
+		build_tools_dir=$(dirname $(find $ROCKET_CFG_HOME/android-sdk/build-tools -name aapt))
 		echo "Updating path in ~/.bash_profile"
 		echo >>~/.bash_profile
 		echo '# Android ndk and sdk paths' >>~/.bash_profile
-		echo PATH='$PATH':$ROCKET_CFG_HOME/android-sdk/platforms/android-4/tools:$ROCKET_CFG_HOME/android-sdk/platform-tools >>~/.bash_profile
+		echo PATH='$PATH':$build_tools_dir:$ROCKET_CFG_HOME/android-sdk/platform-tools >>~/.bash_profile
 		echo PATH='$PATH':$ROCKET_CFG_HOME/android-ndk >>~/.bash_profile
 		echo >>~/.bash_profile
 		echo "# Rocket builds paths" >>~/.bash_profile
