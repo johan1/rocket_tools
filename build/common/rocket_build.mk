@@ -40,11 +40,10 @@ tests:
 run_tests: tests
 	cd out/tests && echo "Running tests..."
 
-ifeq ($(HEADER_ONLY_LIB),)
+ifneq ($(TYPE),header)
 deploy: host android
 else
 deploy:
-	@echo "Deploying to $(DEPLOY_PATH)";
 endif
 ifneq ($(EXPORT_AUTO_INCLUDES),)
 ifeq ($(EXPORT_INCLUDE_SOURCE_DIR),)

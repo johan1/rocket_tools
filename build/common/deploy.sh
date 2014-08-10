@@ -76,6 +76,8 @@ fi
 
 # And of course we should appenend any dependencies as well
 if [ -f "dependencies.mk" ]; then
-	echo "\n\n# Dependencies" >> ${DEST_DIR}/library.mk
+	echo >> ${DEST_DIR}/library.mk
+	echo >> ${DEST_DIR}/library.mk
+	echo "# Dependencies" >> ${DEST_DIR}/library.mk
 	cat dependencies.mk >> ${DEST_DIR}/library.mk
 fi
