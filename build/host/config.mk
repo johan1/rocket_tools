@@ -9,8 +9,7 @@ ARFLAGS		:= -crs
 
 CPPFLAGS	:= $(INCLUDES) $(DEFINES)
 
-#C configuration
-#CC			:= gcc
+# C configuration
 ifeq ($(CC),)
 CC			:= clang
 endif
@@ -19,14 +18,11 @@ CFLAGS		:= -Wextra -Wall
 endif
 
 # C++ configuration
-#CXX			:= g++
 ifeq ($(CXX),)
 CXX 		:= clang++
 endif
 ifeq ($(CXXFLAGS),)
 CXXFLAGS 	:= -Wextra -Wall -std=c++11
-#CXXFLAGS	+= -Wno-constexpr-not-const
-#CXXFLAGS	+= -Wno-deprecated-register
 endif
 
 # Linker 
@@ -38,7 +34,7 @@ else # Defaults to release if not specified.
 CXXFLAGS += -O2
 endif
 
-# These belong
+# We need position independent code for shared libraries
 ifeq ($(TYPE),shared)
 CXXFLAGS += -fPIC
 LDFLAGS += -shared

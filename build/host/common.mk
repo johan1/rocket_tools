@@ -13,18 +13,6 @@ VPATH = $(SOURCE_DIR):.
 OBJS := $(SOURCES:.cpp=.o)
 OBJS += $(CSOURCES:.c=.o)
 
-# Targets
-ifneq ($(OUT_DIRS),)
-clean-intermediates:
-	@rm -rf $(OBJS) $(DEPS) $(OUT_DIRS) .folders.f;
-else
-clean-intermediates:
-	@rm -f $(OBJS) $(DEPS) .folders.f;
-endif
-
-clean: clean-intermediates
-	@rm -f lib$(NAME).so $(NAME) lib$(NAME).a
-
 ifeq ($(TYPE),shared)
 BUILD_ARTIFACT := lib$(NAME).so
 endif
@@ -43,9 +31,9 @@ endif
 
 build_artifact: $(BUILD_ARTIFACT)
 
-.PHONY: all build_artifact dependencies clean clean-dependencies clean-intermediates
+.PHONY: all build_artifact clean clean-intermediates
 
-lib$(NAME).so: .folders.f dependencies $(OBJS)
+lib$(NAME).so: .folders.f $(OBJS)
 	@echo $(EC_GREEN)"[$(CXX) linking shared library]\t" $@ $(EC_CLEAR)
 ifeq ($V,1)
 	$(CXX) $(LDFLAGS) $(OBJS) -o$@
@@ -53,7 +41,7 @@ else
 	@$(CXX) $(LDFLAGS) $(OBJS) -o$@
 endif
 
-lib$(NAME).a: .folders.f dependencies $(OBJS)
+lib$(NAME).a: .folders.f $(OBJS)
 	@echo $(EC_GREEN)"[$(AR) linking static library]\t" $@ $(EC_CLEAR)
 ifeq ($V,1)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
@@ -61,7 +49,7 @@ else
 	@$(AR) $(ARFLAGS) $@ $(OBJS)
 endif
 
-$(NAME): .folders.f dependencies $(OBJS)
+$(NAME): .folders.f $(OBJS)
 	@echo $(EC_GREEN)"[$(CXX) linking executable]\t" $@ $(EC_CLEAR)
 ifeq ($V,1)
 	$(CXX) $(OBJS) -o$@ $(LDFLAGS)
@@ -118,17 +106,6 @@ endif
 	@sed -e 's/.*://' -e 's/\\$$//' < $*.d.tmp | fmt -1 | \
 	  sed -e 's/^ *//' -e 's/$$/:/' >> $*.d
 	@rm -f $*.d.tmp
-
-# Recursive make for building dependency libraries.
-dependencies:
-	+@for DEPENDENCY in $(DEPENDENCIES); do \
-		cd `dirname $$DEPENDENCY`; make; cd -; \
-	done
-	
-clean-dependencies:
-	@for DEPENDENCY in $(DEPENDENCIES); do \
-		cd `dirname $$DEPENDENCY`; make clean; cd -; \
-	done
 
 install: 
 	@mkdir -p $(INSTALL_PATH) && \

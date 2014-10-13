@@ -33,9 +33,8 @@ endif
 # Creates tests.mk in out/tests and execute make on the tests.
 tests:
 	@mkdir -p out/tests && cd out/tests && \
-	$(BUILD_ROOT)/host/create_tests_mk $(shell $(BUILD_ROOT)/common/abs_path_to_rel_path.sh $(PROJECT_ROOT)/out/tests $(SOURCE_DIR))/ && \
+	INCLUDES="$(INCLUDES)" DEFINES="$(DEFINES)" $(BUILD_ROOT)/host/create_tests_mk $(shell $(BUILD_ROOT)/common/abs_path_to_rel_path.sh $(PROJECT_ROOT)/out/tests $(SOURCE_DIR))/ && \
 	make -j5 -f "$(BUILD_ROOT)"/host/tests_rocket.mk
-
 
 run_tests: tests
 	cd out/tests && echo "Running tests..."
@@ -52,7 +51,7 @@ else
 	@sh "$(BUILD_ROOT)/common/create_auto_include_list.sh" "$(EXPORT_INCLUDE_FOLDER_NAME)" "$(EXPORT_INCLUDE_SOURCE_DIR)"
 endif
 endif
-	@sh "$(BUILD_ROOT)/common/deploy.sh" "$(DEPLOY_PATH)" "$(EXPORT_LIBNAME)"
+	@sh "$(BUILD_ROOT)/common/deploy.sh" "$(DEPLOY_PATH)" "$(EXPORT_LIBNAME)" "$(EXPORT_SYSTEM_LIB)"
 
 run: host
 	./out/host/$(NAME)
@@ -70,18 +69,20 @@ clean-all: clean
 	@rmdir "$(DEPLOY_PATH)"
 
 ifneq ($(TYPE),executable)
-.PHONY: all host android tests deploy
+.PHONY: all host android tests deploy .clang_complete /tmp/rocket_build_includes
 else
-.PHONY: all host prepare_android android tests deploy
+.PHONY: all host prepare_android android tests deploy .clang_complete /tmp/rocket_build_includes
 endif
 
-#clang_completion_dep:
-#	@echo -I/usr/include -I$(SOURCE_DIR) $(INCLUDES) | tr ' ' '\n' | uniq >.clang_complete
+/tmp/rocket_build_includes:
+	@echo -I$(SOURCE_DIR) $(INCLUDES) | sed 's/-isystem /-I/g' | tr ' ' '\n' | sed 's/-I//g' | sort -u >$@
 
-prepare_vim:
-	@echo -I$(SOURCE_DIR) $(INCLUDES) | tr ' ' '\n' | sed 's/-I//g' | uniq >/tmp/rocket_build_includes && \
+.clang_complete:
+	@echo -I$(SOURCE_DIR) >$@
+	@echo $(INCLUDES) $(DEFINES) | sed -s 's/\(-[iID]\)/\n\1/g' | sed -s 's/\s*$$//' | sort -u >>$@
+
+prepare_cscope: /tmp/rocket_build_includes
 	echo "Creating cscope database..." && \
-	$(BUILD_ROOT)/../dev_scripts/create_cscope_from_directory_list.sh /tmp/rocket_build_includes && \
-	echo "Creating .clang_complete" && \
-	$(BUILD_ROOT)/../dev_scripts/create_clang_complete.sh /tmp/rocket_build_includes
+	$(BUILD_ROOT)/../dev_scripts/create_cscope_from_directory_list.sh $^
 
+prepare_vim: .clang_complete prepare_cscope

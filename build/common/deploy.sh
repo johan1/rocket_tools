@@ -2,6 +2,7 @@
 
 DEST_DIR=$1
 EXPORT_LIBNAME=$2
+EXPORT_SYSTEM_LIB=$3
 
 if [ -d "./out/host" ]; then
 	mkdir -p "$DEST_DIR/lib/host"
@@ -70,7 +71,11 @@ else # Ok let's add default build flags
 
 	# If we expose includes let's add them to the INCLUDES flag
 	if [ -d "${DEST_DIR}/include" ]; then
-		echo 'INCLUDES += -I$(LOCAL_LIBPATH)/include' >> "${DEST_DIR}"/library.mk
+		if [ -z ${EXPORT_SYSTEM_LIB} ]; then
+			echo 'INCLUDES += -I$(LOCAL_LIBPATH)/include' >> "${DEST_DIR}"/library.mk
+		else
+			echo 'INCLUDES += -isystem $(LOCAL_LIBPATH)/include' >> "${DEST_DIR}"/library.mk
+		fi
 	fi
 fi
 

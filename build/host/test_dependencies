@@ -2,7 +2,6 @@
 use strict;
 
 my @checked_cpps;
-my @objects;
 
 main();
 
@@ -10,7 +9,11 @@ sub lookup_dependencies {
 	my $cpp_file = $_[0];
 	push (@checked_cpps, $cpp_file);
 
-	my $result = `g++ -std=c++11 -MM -MT -E $cpp_file`;
+	if (not $cpp_file =~ m/\.cpp$/g) {
+		return;
+	}
+
+	my $result = `g++ -c -std=c++11 -MM -MT -E $ENV{'INCLUDES'} $ENV{'DEFINES'} $cpp_file`;
 
 	$result =~ s/\n//g;
 	$result =~ s/\\//g;
@@ -71,11 +74,13 @@ sub main {
 
 	print "$bin: ";
 	foreach my $cpp_file (@checked_cpps) {
-		(my $obj = $cpp_file) =~ s/\.cpp/\.o/g;
-		foreach my $vpath (@ARGV) {
-			$obj =~ s/^\Q$vpath\E//g;
+		if ($cpp_file =~ m/\.cpp$/g) {
+			(my $obj = $cpp_file) =~ s/\.cpp/\.o/g;
+			foreach my $vpath (@ARGV) {
+				$obj =~ s/^\Q$vpath\E//g;
+			}
+			print  "$obj ";
 		}
-		print  "$obj ";
 	}
 	print "\n";
 	print 'ifeq ($V,1)' . "\n";

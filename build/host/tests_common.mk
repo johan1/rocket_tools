@@ -33,19 +33,10 @@ clean: clean-intermediates
 
 # This should be replaced with one executable per test.
 -include tests.mk # Declares BUILD_ARTIFACTS
-# BUILD_ARTIFACTS := $(NAME)
-build_artifacts: $(BUILD_ARTIFACTS)
+build_artifacts: .folders.f $(BUILD_ARTIFACTS)
 	echo $(BUILD_ARTIFACTS)
 
-.PHONY: all build_artifact dependencies clean clean-dependencies clean-intermediates
-
-$(NAME): .folders.f dependencies $(OBJS)
-	@echo $(EC_GREEN)"[$(CXX) linking executable]\t" $@ $(EC_CLEAR)
-ifeq ($V,1)
-	$(CXX) $(OBJS) -o$@ $(LDFLAGS)
-else
-	@$(CXX) $(OBJS) -o$@ $(LDFLAGS)
-endif
+.PHONY: all build_artifact clean clean-intermediates
 
 ifneq ($(shell echo $(OUT_DIRS) | tr -d ' '),)
 .folders.f: $(SRC_DIRS)
@@ -96,17 +87,6 @@ endif
 	@sed -e 's/.*://' -e 's/\\$$//' < $*.d.tmp | fmt -1 | \
 	  sed -e 's/^ *//' -e 's/$$/:/' >> $*.d
 	@rm -f $*.d.tmp
-
-# Recursive make for building dependency libraries.
-dependencies:
-	+@for DEPENDENCY in $(DEPENDENCIES); do \
-		cd `dirname $$DEPENDENCY`; make; cd -; \
-	done
-	
-clean-dependencies:
-	@for DEPENDENCY in $(DEPENDENCIES); do \
-		cd `dirname $$DEPENDENCY`; make clean; cd -; \
-	done
 
 # Build system debug targets
 list-objects:
