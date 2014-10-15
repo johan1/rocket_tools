@@ -25,13 +25,27 @@ function install_android_sdk {
 	fi
 }
 
-function install_android_ndk {
-	local href_link=$(curl -s https://developer.android.com/tools/sdk/ndk/index.html | grep linux-x86_64)
+function install_android_ndk32 {
+	local href_link=$(curl -s https://developer.android.com/tools/sdk/ndk/index.html | grep linux-x86_64 | grep ndk32)
 	local url=$(echo $href_link | sed -n 's/.*"\(.*\)".*/\1/p')
 	local tgz_file=$(echo $href_link | sed -n 's/.*>\(.*\)<.*/\1/p')
 
 	if [ ! -f $tgz_file ]; then
-		echo "Downloading android ndk"
+		echo "Downloading android ndk32"
+		curl -s ${url} -o${tgz_file}
+		tar jxf "${tgz_file}"
+		local android_ndk_home=$(ls -p | grep "/" | grep "ndk")
+		ln -fs ${android_ndk_home} ${ROCKET_CFG_HOME}/android-ndk
+	fi
+}
+
+function install_android_ndk64 {
+	local href_link=$(curl -s https://developer.android.com/tools/sdk/ndk/index.html | grep linux-x86_64 | grep ndk64)
+	local url=$(echo $href_link | sed -n 's/.*"\(.*\)".*/\1/p')
+	local tgz_file=$(echo $href_link | sed -n 's/.*>\(.*\)<.*/\1/p')
+
+	if [ ! -f $tgz_file ]; then
+		echo "Downloading android ndk64"
 		curl -s ${url} -o${tgz_file}
 		tar jxf "${tgz_file}"
 		local android_ndk_home=$(ls -p | grep "/" | grep "ndk")
@@ -59,5 +73,6 @@ mkdir -p ${ROCKET_CFG_HOME}
 cd ${ROCKET_CFG_HOME}
 
 install_android_sdk
-install_android_ndk
+install_android_ndk32
+install_android_ndk64
 update_bash_profile
