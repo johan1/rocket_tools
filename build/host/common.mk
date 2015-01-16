@@ -34,7 +34,7 @@ build_artifact: $(BUILD_ARTIFACT)
 .PHONY: all build_artifact clean clean-intermediates
 
 lib$(NAME).so: .folders.f $(OBJS)
-	@echo $(EC_GREEN)"[$(CXX) linking shared library]\t" $@ $(EC_CLEAR)
+	@echo -e $(EC_GREEN)"[$(CXX) linking shared library]\t" $@ $(EC_CLEAR)
 ifeq ($V,1)
 	$(CXX) $(LDFLAGS) $(OBJS) -o$@
 else
@@ -42,7 +42,7 @@ else
 endif
 
 lib$(NAME).a: .folders.f $(OBJS)
-	@echo $(EC_GREEN)"[$(AR) linking static library]\t" $@ $(EC_CLEAR)
+	@echo -e $(EC_GREEN)"[$(AR) linking static library]\t" $@ $(EC_CLEAR)
 ifeq ($V,1)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 else
@@ -50,7 +50,7 @@ else
 endif
 
 $(NAME): .folders.f $(OBJS)
-	@echo $(EC_GREEN)"[$(CXX) linking executable]\t" $@ $(EC_CLEAR)
+	@echo -e $(EC_GREEN)"[$(CXX) linking executable]\t" $@ $(EC_CLEAR)
 ifeq ($V,1)
 	$(CXX) $(OBJS) -o$@ $(LDFLAGS)
 else
@@ -82,7 +82,7 @@ DEPS := $(OBJS:.o=.d)
 # #   sed:    strip leading spaces
 # #   sed:    add trailing colons
 %.o: %.cpp
-	@echo $(EC_GREEN)"[$(CXX) compiling]\t" $< $(EC_CLEAR)
+	@echo -e $(EC_GREEN)"[$(CXX) compiling]\t" $< $(EC_CLEAR)
 ifeq ($V,1)
 	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) $< -o $@
 else
@@ -95,7 +95,7 @@ endif
 	@rm -f $*.d.tmp
 
 %.o: %.c
-	@echo $(EC_GREEN)"[$(CC) compiling]\t" $< $(EC_CLEAR)
+	@echo -e $(EC_GREEN)"[$(CC) compiling]\t" $< $(EC_CLEAR)
 ifeq ($V,1)
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 else
@@ -118,7 +118,7 @@ uninstall:
 
 # Build system debug targets
 list-objects:
-	@echo $(OBJS)
+	@echo -e $(OBJS)
 
 debug-clean:
 	@echo rm -rf $(OBJS) $(DEPS) $(OUT_DIRS) .folders.f;

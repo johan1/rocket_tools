@@ -78,7 +78,8 @@ endif
 	@echo -I$(SOURCE_DIR) $(INCLUDES) | sed 's/-isystem /-I/g' | tr ' ' '\n' | sed 's/-I//g' | sort -u >$@
 
 .clang_complete:
-	@echo -I$(SOURCE_DIR) >$@
+	@echo "-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-unused-macros -Wno-shadow" >$@
+	@echo -I$(SOURCE_DIR) >>$@
 	@echo $(INCLUDES) $(DEFINES) | sed -s 's/\(-[iID]\)/\n\1/g' | sed -s 's/\s*$$//' | sort -u >>$@
 
 prepare_cscope: /tmp/rocket_build_includes
