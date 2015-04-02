@@ -78,7 +78,7 @@ endif
 	@echo -I$(SOURCE_DIR) $(INCLUDES) | sed 's/-isystem /-I/g' | tr ' ' '\n' | sed 's/-I//g' | sort -u >$@
 
 .clang_complete:
-	@echo "-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-unused-macros -Wno-shadow -Wno-exit-time-destructors -Wno-reserved-id-macro -Wno-padded -Wno-weak-vtables -Wno-global-constructors" >$@
+	@echo "-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-unused-macros -Wno-shadow -Wno-exit-time-destructors" >$@
 	@echo -I$(SOURCE_DIR) >>$@
 	@echo $(INCLUDES) $(DEFINES) | sed -s 's/\(-[iID]\)/\n\1/g' | sed -s 's/\s*$$//' | sort -u >>$@
 
