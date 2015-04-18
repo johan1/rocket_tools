@@ -21,8 +21,22 @@ endif
 ifeq ($(CXX),)
 CXX 		:= clang++
 endif
-ifeq ($(CXXFLAGS),)
-CXXFLAGS 	:= -Wextra -Wall -std=c++11
+
+CXXFLAGS := -std=c++11
+
+ifeq ($(CXX),g++)
+CXXFLAGS 	+= -Wextra -Wall -std=c++11
+else
+
+ifeq ($(CXX),clang++)
+CXXFLAGS	+= -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-unused-macros
+CXXFLAGS	+= -Wno-shadow
+CXXFLAGS	+= -Wno-exit-time-destructors
+CXXFLAGS	+= -Wno-reserved-id-macro
+CXXFLAGS	+= -Wno-padded
+CXXFLAGS	+= -Wno-weak-vtables
+endif
+
 endif
 
 # Linker 
