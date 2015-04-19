@@ -29,7 +29,7 @@ CXXFLAGS 	+= -Wextra -Wall -std=c++11
 else
 
 ifeq ($(CXX),clang++)
-CXXFLAGS	+= -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-unused-macros
+CXXFLAGS	+= -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-unused-macros -Wno-global-constructors
 CXXFLAGS	+= -Wno-shadow
 CXXFLAGS	+= -Wno-exit-time-destructors
 CXXFLAGS	+= -Wno-reserved-id-macro
