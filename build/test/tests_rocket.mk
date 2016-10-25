@@ -1,4 +1,4 @@
-all: build_artifact
+all: build_artifacts
 
 # We need to make sure that these are not defaulted to recursive variables, eg Var = value
 TARGET := host
@@ -21,5 +21,5 @@ include $(BUILD_ROOT)/common/auto_sources.mk
 endif
 endif
 
-include $(BUILD_ROOT)/host/config.mk
-include $(BUILD_ROOT)/host/common.mk
+include $(BUILD_ROOT)/test/tests_config.mk
+include $(BUILD_ROOT)/test/tests_common.mk

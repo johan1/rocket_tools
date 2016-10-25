@@ -2,6 +2,13 @@
 
 # User did not specify source dir, let's try with default
 include $(PROJECT_ROOT)/project.mk
+ifeq ($(PLATFORMS),) # If no platform list was specified assume all supported
+PLATFORMS := host android i686-w64-mingw32
+endif
+ifeq ($(DEFAULT_PLATFORM),)
+DEFAULT_PLATFORM := $(shell echo $(PLATFORMS) | awk '{print $1;}')
+endif
+
 ifeq ($(SOURCE_DIR),)
 SOURCE_DIR=$(PROJECT_ROOT)/src
 endif
@@ -11,14 +18,23 @@ INCLUDES :=
 
 DEPLOY_PATH := $(REPO_ROOT)/$(EXPORT_LIBNAME)/$(EXPORT_LIBVERSION)
 
-all: host
+all: $(DEFAULT_PLATFORM)
 
 -include $(PROJECT_ROOT)/project_targets.mk
 
+# For linux builds
 host:
-	@mkdir -p out/host && cd out/host && \
-	make -j5 -f "$(BUILD_ROOT)"/host/rocket.mk
+	@mkdir -p out/$@ && cd out/$@ && \
+	TARGET=$@ make -j5 -f "$(BUILD_ROOT)"/common/build_target.mk
+#	make -j5 -f "$(BUILD_ROOT)"/host/rocket.mk
 
+# For windows builds
+i686-w64-mingw32:
+	@mkdir -p out/$@ && cd out/$@ && \
+	TARGET=$@ make -j5 -f "$(BUILD_ROOT)"/common/build_target.mk
+#	make -j5 -f "$(BUILD_ROOT)"/i686-w64-mingw32/rocket.mk
+
+# For android builds
 ifneq ($(TYPE),executable)
 android:
 	@sh "$(BUILD_ROOT)"/android/create_lib_proj.sh
@@ -33,14 +49,15 @@ endif
 # Creates tests.mk in out/tests and execute make on the tests.
 tests:
 	@mkdir -p out/tests && cd out/tests && \
-	INCLUDES="$(INCLUDES)" DEFINES="$(DEFINES)" $(BUILD_ROOT)/host/create_tests_mk $(shell $(BUILD_ROOT)/common/abs_path_to_rel_path.sh $(PROJECT_ROOT)/out/tests $(SOURCE_DIR))/ && \
-	make -j5 -f "$(BUILD_ROOT)"/host/tests_rocket.mk
+	INCLUDES="$(INCLUDES)" DEFINES="$(DEFINES)" $(BUILD_ROOT)/test/create_tests_mk $(shell $(BUILD_ROOT)/common/abs_path_to_rel_path.sh $(PROJECT_ROOT)/out/tests $(SOURCE_DIR))/ && \
+	make -j5 -f "$(BUILD_ROOT)"/test/tests_rocket.mk
 
 run_tests: tests
 	cd out/tests && echo "Running tests..."
 
+# Deploy target
 ifneq ($(TYPE),header)
-deploy: host android
+deploy: $(PLATFORMS)
 else
 deploy:
 endif
@@ -51,7 +68,16 @@ else
 	@sh "$(BUILD_ROOT)/common/create_auto_include_list.sh" "$(EXPORT_INCLUDE_FOLDER_NAME)" "$(EXPORT_INCLUDE_SOURCE_DIR)"
 endif
 endif
-	@sh "$(BUILD_ROOT)/common/deploy.sh" "$(DEPLOY_PATH)" "$(EXPORT_LIBNAME)" "$(EXPORT_SYSTEM_LIB)"
+ifneq ($(TYPE),executable) # TODO: Do we need a special case here? Can we simplify?
+	@if [ -f "$(PROJECT_ROOT)/deploy.sh" ]; then \
+		sh "$(PROJECT_ROOT)/deploy.sh"; \
+	else \
+		sh "$(BUILD_ROOT)/common/deploy.sh" "$(DEPLOY_PATH)" "$(EXPORT_LIBNAME)" "$(EXPORT_SYSTEM_LIB)"; \
+	fi
+else
+	cd out/host && make -j5 -f "$(BUILD_ROOT)"/host/rocket.mk deploy;
+	cd out/i686-w64-mingw32 && make -j5 -f "$(BUILD_ROOT)"/i686-w64-mingw32/rocket.mk deploy;
+endif
 
 run: host
 	./out/host/$(NAME)
@@ -62,6 +88,18 @@ clean:
 ifneq ($(EXPORT_AUTO_INCLUDES),)
 	@rm -rf includes.list
 endif
+
+clean-host:
+	@echo "Removing host out folder" && \
+	rm -rf out/host
+
+clean-android:
+	@echo "Removing android out folder" && \
+	rm -rf out/android
+
+clean-i686-w64-mingw32:
+	@echo "Removing windows out folder" && \
+	rm -rf out/i686-w64-mingw32
 
 clean-all: clean
 	@echo "Removing deployed files $(DEPLOY_PATH)/include $(DEPLOY_PATH)/lib $(DEPLOY_PATH)/library.mk";

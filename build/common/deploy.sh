@@ -9,6 +9,11 @@ if [ -d "./out/host" ]; then
 	cp ./out/host/*.a "$DEST_DIR/lib/host"
 fi
 
+if [ -d "./out/i686-w64-mingw32" ]; then
+	mkdir -p "$DEST_DIR/lib/i686-w64-mingw32"
+	cp ./out/i686-w64-mingw32/*.a "$DEST_DIR/lib/i686-w64-mingw32"
+fi
+
 if [ -d "./out/android" ]; then
 	for ANDROID_TARGET in ./out/android/obj/local/*; do
 		ANDROID_TARGET_PATH="$DEST_DIR/lib/"android-`basename "$ANDROID_TARGET"`
@@ -67,6 +72,8 @@ else # Ok let's add default build flags
 	# If not header only library we should append library to the LIBRARIES flag
 	if [ -d "./out" ]; then
 		echo 'LIBRARIES += -L$(LOCAL_LIBPATH)/lib/$(TARGET)' -l${EXPORT_LIBNAME} >> "${DEST_DIR}"/library.mk
+		# TODO: Do we only want to support static libraries?
+		echo 'LIBRARY_FILES += $(LOCAL_LIBPATH)/lib/$(TARGET)'/lib${EXPORT_LIBNAME}.a >> "${DEST_DIR}"/library.mk
 	fi
 
 	# If we expose includes let's add them to the INCLUDES flag

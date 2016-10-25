@@ -1,12 +1,9 @@
 # Configuration variables, override to change install directory
-INSTALL_PATH := ./out
-
-EC_GREEN 	:= "\033[32m"	# GREEN
-EC_CLEAR 	:= "\033[0m" 		# NO COLOR
+SHAREDLIB_NAME := lib$(NAME).so
+EXECUTABLE_NAME := $(NAME)
 
 AR 			:= ar
 ARFLAGS		:= -crs
-
 CPPFLAGS	:= $(INCLUDES) $(DEFINES)
 
 # C configuration
@@ -29,7 +26,7 @@ CXXFLAGS 	+= -Wextra -Wall -std=c++11
 else
 
 ifeq ($(CXX),clang++)
-CXXFLAGS	+= -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-unused-macros -Wno-global-constructors
+# CXXFLAGS	+= -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-unused-macros -Wno-global-constructors
 CXXFLAGS	+= -Wno-shadow
 CXXFLAGS	+= -Wno-exit-time-destructors
 CXXFLAGS	+= -Wno-reserved-id-macro
@@ -40,7 +37,7 @@ endif
 endif
 
 # Linker 
-LDFLAGS		:= $(LIBRARIES) $(SYSTEM_LIBRARIES)
+LDFLAGS		:=
 
 ifeq ($(TARGET_OPTIM),debug)
 CXXFLAGS += -ggdb -O0
@@ -51,5 +48,6 @@ endif
 # We need position independent code for shared libraries
 ifeq ($(TYPE),shared)
 CXXFLAGS += -fPIC
+CFLAGS += -fPIC
 LDFLAGS += -shared
 endif

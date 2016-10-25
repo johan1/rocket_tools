@@ -22,8 +22,11 @@ INCLUDES :=
 LIBRARIES :=
 # Since LD_LIBS are incorrectly added after inclusion of the static stl lib by ndk-build libraries cannot find stl. Re-adding here...
 SYSTEM_LIBRARIES := $(call host-path,$(NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/libs/$(TARGET_ARCH_ABI)/libgnustl_static.a)
-include $(PROJECT_ROOT)/project.mk
+LIBRARY_FILES :=
+SHARED_FILES :=
+
 -include $(PROJECT_ROOT)/dependencies.mk
+include $(PROJECT_ROOT)/project.mk
 
 LOCAL_MODULE    := $(NAME)
 LOCAL_CFLAGS    := $(DEFINES)

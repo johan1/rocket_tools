@@ -1,0 +1,9 @@
+BUILD SYSTEMS
+
+*) i686 builds should build their own versions of zlib and not rely on the checked in version...
+*) Use android toolchains instead of not android ndk make. It will make it significally easier to deploy libraries.
+*) Use standard install paths. It will ease deploying libraries build with other build systems.
+*) ...
+
+DONE:
+*) Make it possible to easily clean a single target, rm -r out/target is a disaster waiting to happen...

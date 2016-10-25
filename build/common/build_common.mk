@@ -14,7 +14,7 @@ OBJS := $(SOURCES:.cpp=.o)
 OBJS += $(CSOURCES:.c=.o)
 
 ifeq ($(TYPE),shared)
-BUILD_ARTIFACT := lib$(NAME).so
+BUILD_ARTIFACT := $(SHAREDLIB_NAME)
 endif
 
 ifeq ($(TYPE),static)
@@ -22,7 +22,7 @@ BUILD_ARTIFACT := lib$(NAME).a
 endif
 
 ifeq ($(TYPE),executable)
-BUILD_ARTIFACT := $(NAME)
+BUILD_ARTIFACT := $(EXECUTABLE_NAME)
 
 run: $(BUILD_ARTIFACT)
 	./$(BUILD_ARTIFACT)
@@ -33,30 +33,43 @@ build_artifact: $(BUILD_ARTIFACT)
 
 .PHONY: all build_artifact clean clean-intermediates
 
-lib$(NAME).so: .folders.f $(OBJS)
-	@echo -e $(EC_GREEN)"[$(CXX) linking shared library]\t" $@ $(EC_CLEAR)
+# Shared target
+$(SHAREDLIB_NAME): .folders.f $(OBJS) $(LIBRARY_FILES)
+	@echo $(EC_GREEN)"[$(CXX) linking shared library]\t" $@ $(EC_CLEAR)
 ifeq ($V,1)
-	$(CXX) $(LDFLAGS) $(OBJS) -o$@
+	$(CXX) $(LDFLAGS) -o$@ $(OBJS) $(LIBRARIES) $(SYSTEM_LIBRARIES)
 else
-	@$(CXX) $(LDFLAGS) $(OBJS) -o$@
+	@$(CXX) $(LDFLAGS) -o$@ $(OBJS) $(LIBRARIES) $(SYSTEM_LIBRARIES)
 endif
 
+# Static target
 lib$(NAME).a: .folders.f $(OBJS)
-	@echo -e $(EC_GREEN)"[$(AR) linking static library]\t" $@ $(EC_CLEAR)
+	@echo $(EC_GREEN)"[$(AR) linking static library]\t" $@ $(EC_CLEAR)
 ifeq ($V,1)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 else
 	@$(AR) $(ARFLAGS) $@ $(OBJS)
 endif
 
-$(NAME): .folders.f $(OBJS)
-	@echo -e $(EC_GREEN)"[$(CXX) linking executable]\t" $@ $(EC_CLEAR)
+# Executable target
+$(EXECUTABLE_NAME): .folders.f $(OBJS) $(LIBRARY_FILES)
+	@echo $(EC_GREEN)"[$(CXX) linking executable]\t" $@ $(EC_CLEAR)
 ifeq ($V,1)
-	$(CXX) $(OBJS) -o$@ $(LDFLAGS)
+	$(CXX) $(LDFLAGS) -o$@ $(OBJS) $(LIBRARIES) $(SYSTEM_LIBRARIES)
 else
-	@$(CXX) $(OBJS) -o$@ $(LDFLAGS)
+	@$(CXX) $(LDFLAGS) -o$@ $(OBJS) $(LIBRARIES) $(SYSTEM_LIBRARIES)
 endif
 
+# Deploy target
+ifeq ($(TYPE),executable)
+deploy: $(EXECUTABLE_NAME)
+	mkdir -p $(DEPLOY_DIR)
+	cp -r $(SHARED_FILES) $(EXECUTABLE_NAME) $(DEPLOY_DIR)
+else
+deploy:
+endif
+
+# TODO: Add comment on why the below is necessary. Currently I've forgotten...
 ifneq ($(shell echo $(OUT_DIRS) | tr -d ' '),)
 .folders.f: $(SRC_DIRS)
 	mkdir -p $(OUT_DIRS) && touch $@
@@ -82,7 +95,7 @@ DEPS := $(OBJS:.o=.d)
 # #   sed:    strip leading spaces
 # #   sed:    add trailing colons
 %.o: %.cpp
-	@echo -e $(EC_GREEN)"[$(CXX) compiling]\t" $< $(EC_CLEAR)
+	@echo $(EC_GREEN)"[$(CXX) compiling]\t" $< $(EC_CLEAR)
 ifeq ($V,1)
 	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) $< -o $@
 else
@@ -95,7 +108,7 @@ endif
 	@rm -f $*.d.tmp
 
 %.o: %.c
-	@echo -e $(EC_GREEN)"[$(CC) compiling]\t" $< $(EC_CLEAR)
+	@echo $(EC_GREEN)"[$(CC) compiling]\t" $< $(EC_CLEAR)
 ifeq ($V,1)
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 else
@@ -107,19 +120,6 @@ endif
 	  sed -e 's/^ *//' -e 's/$$/:/' >> $*.d
 	@rm -f $*.d.tmp
 
-install: 
-	@mkdir -p $(INSTALL_PATH) && \
-	cp $(DEPENDENCIES) $(BUILD_ARTIFACT) $(INSTALL_PATH)
-
-uninstall:
-	@rm  -rf $(INSTALL_PATH)/*.a $(INSTALL_PATH)/$(BUILD_ARTIFACT) && \
-	rmdir $(INSTALL_PATH)
-
-
 # Build system debug targets
 list-objects:
 	@echo -e $(OBJS)
-
-debug-clean:
-	@echo rm -rf $(OBJS) $(DEPS) $(OUT_DIRS) .folders.f;
-	@echo rm -f lib$(NAME).so $(NAME) lib$(NAME).a

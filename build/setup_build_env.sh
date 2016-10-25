@@ -10,7 +10,7 @@ ndk_download_url="https://developer.android.com/ndk/downloads/index.html"
 
 function install_android_sdk {
 	local href_link=$(curl -s $sdk_download_url | grep linux.tgz)
-	local url=http:$(echo $href_link | sed -n 's/.*"\(.*\)".*/\1/p')
+	local url=$(echo $href_link | sed -n 's/.*"\(.*\)".*/\1/p')
 	local tgz_file=$(echo $href_link | sed -n 's/.*>\(.*\)<.*/\1/p')
 
 	if [ ! -f $tgz_file ]; then
